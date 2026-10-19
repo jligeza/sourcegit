@@ -1,5 +1,11 @@
 # SourceGit - Opensource Git GUI client.
 
+This fork adds an optional **Focused history layout**: the selected file's diff
+replaces the central graph while commit details and changed files stay on the
+right. See the [feature guide](docs/focused-history-layout.md) and
+[installation instructions](docs/install-focused-fork.md), including WSL scaling
+and downloadable Linux / Windows builds.
+
 [![stars](https://img.shields.io/github/stars/sourcegit-scm/sourcegit.svg)](https://github.com/sourcegit-scm/sourcegit/stargazers)
 [![forks](https://img.shields.io/github/forks/sourcegit-scm/sourcegit.svg)](https://github.com/sourcegit-scm/sourcegit/forks)
 [![license](https://img.shields.io/github/license/sourcegit-scm/sourcegit.svg)](LICENSE)

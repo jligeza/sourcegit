@@ -1,0 +1,56 @@
+name: Focused fork builds
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/focused-history-layout]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet test tests/SourceGit.Tests/SourceGit.Tests.csproj
+      - run: dotnet format --verify-no-changes src/SourceGit.csproj
+      - run: bash tests/install-focused-linux.sh
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [linux-x64, win-x64]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish standalone build
+        run: >-
+          dotnet publish src/SourceGit.csproj -c Release -r ${{ matrix.runtime }}
+          --self-contained true -p:DisableAOT=true -p:DisableUpdateDetection=true
+          -o bundle/SourceGit
+      - name: Add Linux installer and icon
+        if: matrix.runtime == 'linux-x64'
+        run: |
+          cp tools/install-focused-linux.sh bundle/install-focused-linux.sh
+          cp build/resources/_common/icons/sourcegit.png bundle/SourceGit/sourcegit.png
+      - name: Record revision
+        run: git rev-parse HEAD > bundle/REVISION.txt
+      - name: Archive Linux build
+        if: matrix.runtime == 'linux-x64'
+        run: tar -czf sourcegit-focused-linux-x64.tar.gz -C bundle .
+      - name: Archive Windows build
+        if: matrix.runtime == 'win-x64'
+        run: cd bundle && zip -qr ../sourcegit-focused-win-x64.zip .
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sourcegit-focused-${{ matrix.runtime }}
+          path: sourcegit-focused-*.*
+          retention-days: 90
